@@ -1,17 +1,18 @@
 <template>
-  <div>
-    <filter-date-picker />
+  <div id="app">
+    <FilterChart @filterData="getData" />
     <lineChart :chart-data="datacollection" v-if="datacollection" />
   </div>
 </template>
 
 <script>
-import filterDatePicker from "./components/filter-date-picker";
+import FilterChart from "./components/filter/index.vue";
 import lineChart from "./components/charts/line-chart";
+import { objectToQueryString } from "./helper/utils";
 export default {
   name: "App",
   components: {
-    filterDatePicker,
+    FilterChart,
     lineChart,
   },
   data() {
@@ -19,13 +20,16 @@ export default {
       datacollection: null,
     };
   },
-  mounted() {
-    this.fillData();
-  },
   methods: {
-    async fillData() {
+    /**
+     * @param start {Date} - by format YYYY-MM-DD
+     * @param end {Date} - by format YYYY-MM-DD
+     * @return {Void}
+     */
+    async getData({ start, end }) {
+      let queryData = { index: "[USD]", start: start, end: end };
       let response = await this.axios.get(
-        "/bpi/historical/close.json?start=2021-08-01&end=2021-08-10&index=[USD]"
+        `/bpi/historical/close.json?${objectToQueryString(queryData)}`
       );
       let bpi = response.data.bpi;
       let labels = Object.keys(bpi);
@@ -38,6 +42,7 @@ export default {
             backgroundColor: "transparent",
             pointBackgroundColor: "#f7941e",
             pointBorderColor: "#f7941e",
+            lineTension: 0,
             data: datasets,
             borderColor: [
               "rgba(247, 148, 30, 0.2)",
@@ -56,12 +61,13 @@ export default {
 </script>
 
 <style>
+:root {
+  --light: #fff;
+  --primary: #4f88ff;
+  --inverse: #eee;
+}
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
 }
 </style>
